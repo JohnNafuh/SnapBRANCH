@@ -2,367 +2,516 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SnapBRANCH</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SnapBRANCH — Capture the Raw Unfiltered</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
   <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% -20%, #1e1b4b, #0f172a 60%, #020617);
+      --card-bg: rgba(30, 41, 59, 0.65);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --accent-cyan: #38bdf8;
+      --accent-purple: #a855f7;
+      --accent-pink: #ec4899;
+      --accent-green: #22c55e;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background-color: #0f172a;
-      color: #f8fafc;
+      background: var(--bg-gradient);
+      color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      padding: 16px;
+      overflow-x: hidden;
     }
 
+    /* Subtle background ambient light */
+    .glow-orb {
+      position: fixed;
+      width: 280px;
+      height: 280px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+      filter: blur(120px);
+      opacity: 0.25;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      top: -50px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 430px;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Header */
     header {
       text-align: center;
-      margin-top: 20px;
-      margin-bottom: 30px;
+      margin-top: 12px;
     }
 
-    header h1 {
-      font-size: 2.2rem;
+    .brand-title {
+      font-size: 2.5rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, #7dd3fc, #c084fc, #f472b6);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      text-shadow: 0 10px 20px rgba(168, 85, 247, 0.2);
     }
 
-    header p {
-      color: #94a3b8;
-      font-size: 0.95rem;
-      margin-top: 6px;
+    .brand-subtitle {
+      color: var(--text-sub);
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-top: 4px;
+      letter-spacing: 0.02em;
     }
 
-    .container {
-      width: 100%;
-      max-width: 420px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    /* Card Wrapper (Glassmorphism) */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
     }
 
-    /* Start Section & Slipping Button */
+    /* Interactive Action Box */
     .hero-box {
-      width: 100%;
-      background: #1e293b;
-      padding: 30px 20px;
-      border-radius: 16px;
-      text-align: center;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-      position: relative;
-      min-height: 220px;
+      min-height: 180px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
     }
 
-    .slipping-btn {
-      background: linear-gradient(135deg, #6366f1, #a855f7);
+    .action-btn {
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
       color: #ffffff;
       border: none;
-      padding: 14px 28px;
-      font-size: 1rem;
+      padding: 16px 32px;
+      font-size: 1.05rem;
       font-weight: 700;
       border-radius: 50px;
       cursor: pointer;
-      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-      transition: transform 0.15s ease, top 0.2s ease, left 0.2s ease;
-      position: relative;
+      box-shadow: 0 8px 25px rgba(236, 72, 153, 0.35);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
       user-select: none;
     }
 
-    /* Luck Modal / Notice */
-    .notice-modal {
-      display: none;
-      background: #334155;
-      border-left: 4px solid #38bdf8;
-      padding: 16px;
-      border-radius: 12px;
-      margin-top: 20px;
-      width: 100%;
-      animation: fadeIn 0.3s ease-in-out;
+    .action-btn:active {
+      transform: scale(0.95);
     }
 
-    .notice-modal p {
-      font-size: 0.9rem;
-      line-height: 1.4;
-      color: #e2e8f0;
+    /* Humorous Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.85);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
     }
 
-    .notice-modal .btn-continue {
-      margin-top: 12px;
-      background: #38bdf8;
-      color: #0f172a;
-      border: none;
-      padding: 8px 16px;
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 28px;
+      padding: 28px;
+      text-align: center;
+      max-width: 360px;
+      transform: scale(0.85);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-badge {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
       font-weight: 700;
-      border-radius: 8px;
-      width: 100%;
-      cursor: pointer;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
     }
 
-    /* Upload Form */
-    .upload-section {
-      display: none;
+    .modal-card p {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+      margin-bottom: 20px;
+    }
+
+    .modal-btn {
       width: 100%;
-      background: #1e293b;
-      padding: 24px;
+      background: linear-gradient(135deg, var(--accent-cyan), #0284c7);
+      color: #0f172a;
+      font-weight: 800;
+      border: none;
+      padding: 14px;
       border-radius: 16px;
-      margin-top: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-      animation: fadeIn 0.4s ease-in-out;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+    }
+
+    /* Form Styles */
+    .upload-card {
+      display: none;
+      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .form-group {
-      margin-bottom: 18px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
+      margin-bottom: 18px;
     }
 
     .form-group label {
-      font-size: 0.85rem;
-      color: #cbd5e1;
-      font-weight: 600;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-sub);
     }
 
-    .form-group input[type="text"] {
+    .input-field {
       width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #475569;
-      background: #0f172a;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+      background: rgba(15, 23, 42, 0.6);
       color: #fff;
       outline: none;
       font-size: 0.95rem;
+      transition: border-color 0.2s ease;
     }
 
-    .form-group input[type="file"] {
-      display: none;
+    .input-field:focus {
+      border-color: var(--accent-purple);
     }
 
-    .custom-file-upload {
-      border: 2px dashed #475569;
-      padding: 20px;
-      border-radius: 10px;
+    .upload-box {
+      border: 2px dashed rgba(255, 255, 255, 0.2);
+      padding: 28px 16px;
+      border-radius: 16px;
       text-align: center;
       cursor: pointer;
-      color: #94a3b8;
-      font-size: 0.9rem;
-      background: #0f172a;
+      background: rgba(15, 23, 42, 0.4);
+      transition: all 0.2s ease;
     }
 
-    .image-preview {
-      width: 100%;
-      max-height: 250px;
-      object-fit: cover;
-      border-radius: 10px;
-      margin-top: 10px;
+    .upload-box:hover {
+      border-color: var(--accent-pink);
+      background: rgba(236, 72, 153, 0.05);
+    }
+
+    .upload-icon {
+      font-size: 1.8rem;
+      margin-bottom: 6px;
+    }
+
+    .upload-text {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    .preview-container {
+      position: relative;
+      margin-top: 12px;
       display: none;
-    }
-
-    .submit-btn {
-      width: 100%;
-      background: #22c55e;
-      color: #fff;
-      border: none;
-      padding: 14px;
-      font-weight: 700;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 1rem;
-      margin-top: 10px;
-    }
-
-    /* Posts Feed */
-    .feed-section {
-      width: 100%;
-      margin-top: 30px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .snap-card {
-      background: #1e293b;
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
-    .snap-card img {
+    .preview-img {
       width: 100%;
-      max-height: 400px;
+      max-height: 280px;
       object-fit: cover;
       display: block;
     }
 
-    .snap-card .card-footer {
-      padding: 14px 16px;
+    .post-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent-green), #16a34a);
+      color: #ffffff;
+      border: none;
+      padding: 16px;
+      font-weight: 800;
+      font-size: 1rem;
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+      margin-top: 8px;
+    }
+
+    /* Feed Cards */
+    .feed-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .snap-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    .snap-card-image {
+      width: 100%;
+      max-height: 420px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .snap-card-footer {
+      padding: 16px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #1e293b;
     }
 
-    .snap-card .username {
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar-placeholder {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+      color: #fff;
+    }
+
+    .user-name {
       font-weight: 700;
-      color: #38bdf8;
       font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    .snap-badge {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>SnapBRANCH</h1>
-    <p>Share standard snaps from your everyday life.</p>
-  </header>
+  <div class="glow-orb"></div>
 
-  <div class="container">
-    
-    <!-- Hero Box with Slipping Button -->
-    <div class="hero-box" id="heroBox">
-      <button class="slipping-btn" id="actionBtn">Drop Today's Snap</button>
+  <div class="app-container">
+
+    <header>
+      <h1 class="brand-title">SnapBRANCH</h1>
+      <p class="brand-subtitle">Everyday moments, real people.</p>
+    </header>
+
+    <!-- Interactive Hero Box -->
+    <div class="glass-card hero-box" id="heroBox">
+      <button class="action-btn" id="actionBtn">Drop Today's Snap</button>
     </div>
 
-    <!-- Notice Modal -->
-    <div class="notice-modal" id="noticeModal">
-      <p>⚠️ <strong>Access Granted!</strong> You have no idea how lucky you are to experience this website... the last person was literally rejected for having a huge nose. Consider yourself blessed.</p>
-      <button class="btn-continue" id="continueBtn">Proceed to Upload</button>
+    <!-- Humorous Luck Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal-card">
+        <span class="modal-badge">Access Granted</span>
+        <p>You have no idea how lucky you are to experience this website... the last person was literally rejected for having a huge nose! Consider yourself blessed.</p>
+        <button class="modal-btn" id="modalBtn">Continue to Upload</button>
+      </div>
     </div>
 
-    <!-- Upload Form -->
-    <div class="upload-section" id="uploadSection">
+    <!-- Upload Card -->
+    <div class="glass-card upload-card" id="uploadCard">
       <form id="snapForm">
         <div class="form-group">
           <label for="username">Username</label>
-          <input type="text" id="username" placeholder="e.g. alex_dev" required />
+          <input type="text" id="username" class="input-field" placeholder="@username" required />
         </div>
 
         <div class="form-group">
-          <label>Your Daily Snap</label>
-          <label for="snapInput" class="custom-file-upload" id="uploadLabel">
-            📸 Tap to select image
+          <label>Your Snap</label>
+          <label for="snapInput" class="upload-box" id="uploadBox">
+            <div class="upload-icon">📸</div>
+            <div class="upload-text" id="uploadText">Tap to capture or choose photo</div>
           </label>
-          <input type="file" id="snapInput" accept="image/*" required />
-          <img id="imagePreview" class="image-preview" alt="Snap preview" />
+          <input type="file" id="snapInput" accept="image/*" style="display: none;" required />
+          
+          <div class="preview-container" id="previewContainer">
+            <img id="imagePreview" class="preview-img" alt="Snap preview" />
+          </div>
         </div>
 
-        <button type="submit" class="submit-btn">Post Snap</button>
+        <button type="submit" class="post-btn">Share Snap</button>
       </form>
     </div>
 
     <!-- Feed Container -->
-    <div class="feed-section" id="feedSection">
-      <!-- Uploaded snaps will display here -->
-    </div>
+    <div class="feed-container" id="feedContainer"></div>
 
   </div>
 
   <script>
     const actionBtn = document.getElementById('actionBtn');
     const heroBox = document.getElementById('heroBox');
-    const noticeModal = document.getElementById('noticeModal');
-    const continueBtn = document.getElementById('continueBtn');
-    const uploadSection = document.getElementById('uploadSection');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalBtn = document.getElementById('modalBtn');
+    const uploadCard = document.getElementById('uploadCard');
     const snapInput = document.getElementById('snapInput');
     const imagePreview = document.getElementById('imagePreview');
-    const uploadLabel = document.getElementById('uploadLabel');
+    const previewContainer = document.getElementById('previewContainer');
+    const uploadText = document.getElementById('uploadText');
     const snapForm = document.getElementById('snapForm');
-    const feedSection = document.getElementById('feedSection');
+    const feedContainer = document.getElementById('feedContainer');
 
-    let hasSlipped = false;
+    let slipped = false;
 
-    // Slipping Button Logic
-    function evadeButton() {
-      if (!hasSlipped) {
-        const xOffset = (Math.random() > 0.5 ? 1 : -1) * (60 + Math.random() * 40);
-        const yOffset = (Math.random() > 0.5 ? 1 : -1) * (30 + Math.random() * 20);
+    // Slipping / Evading Effect
+    function slipButton() {
+      if (!slipped) {
+        const randomX = (Math.random() > 0.5 ? 1 : -1) * (50 + Math.random() * 30);
+        const randomY = (Math.random() > 0.5 ? 1 : -1) * (25 + Math.random() * 20);
         
-        actionBtn.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
-        hasSlipped = true;
+        actionBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
+        slipped = true;
       }
     }
 
-    // Trigger evade on touch or mouseover for mobile/desktop
-    actionBtn.addEventListener('touchstart', evadeButton);
-    actionBtn.addEventListener('mouseover', evadeButton);
+    actionBtn.addEventListener('touchstart', slipButton);
+    actionBtn.addEventListener('mouseover', slipButton);
 
-    // Button Click Logic
     actionBtn.addEventListener('click', () => {
-      if (!hasSlipped) {
-        evadeButton();
+      if (!slipped) {
+        slipButton();
       } else {
-        heroBox.style.display = 'none';
-        noticeModal.style.display = 'block';
+        modalOverlay.classList.add('active');
       }
     });
 
-    // Continue to Upload
-    continueBtn.addEventListener('click', () => {
-      noticeModal.style.display = 'none';
-      uploadSection.style.display = 'block';
+    modalBtn.addEventListener('click', () => {
+      modalOverlay.classList.remove('active');
+      heroBox.style.display = 'none';
+      uploadCard.style.display = 'block';
     });
 
-    // Image Preview Handling
+    // Image Upload & Preview
     snapInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = function(event) {
-          imagePreview.src = event.target.result;
-          imagePreview.style.display = 'block';
-          uploadLabel.textContent = 'Change Selected Image';
+        reader.onload = function(evt) {
+          imagePreview.src = evt.target.result;
+          previewContainer.style.display = 'block';
+          uploadText.textContent = 'Change selected photo';
         };
         reader.readAsDataURL(file);
       }
     });
 
-    // Form Submission
+    // Post Snap to Feed
     snapForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const username = document.getElementById('username').value.trim();
-      const imageSrc = imagePreview.src;
+      const imgSrc = imagePreview.src;
 
-      if (!username || !imageSrc) return;
+      if (!username || !imgSrc) return;
 
-      // Create new snap card
+      const firstLetter = username.charAt(0).toUpperCase();
+
       const card = document.createElement('div');
       card.className = 'snap-card';
       card.innerHTML = `
-        <img src="${imageSrc}" alt="Daily Snap" />
-        <div class="card-footer">
-          <span class="username">@${username}</span>
+        <img class="snap-card-image" src="${imgSrc}" alt="Snap" />
+        <div class="snap-card-footer">
+          <div class="user-info">
+            <div class="avatar-placeholder">${firstLetter}</div>
+            <span class="user-name">@${username}</span>
+          </div>
+          <span class="snap-badge">Just now</span>
         </div>
       `;
 
-      // Insert at the top of the feed
-      feedSection.prepend(card);
+      feedContainer.prepend(card);
 
-      // Reset Form
+      // Reset Interface
       snapForm.reset();
-      imagePreview.style.display = 'none';
-      uploadLabel.textContent = '📸 Tap to select image';
-      uploadSection.style.display = 'none';
+      previewContainer.style.display = 'none';
+      uploadText.textContent = 'Tap to capture or choose photo';
+      uploadCard.style.display = 'none';
       heroBox.style.display = 'flex';
-      actionBtn.style.transform = 'translate(0, 0)';
-      hasSlipped = false;
+      actionBtn.style.transform = 'translate(0px, 0px)';
+      slipped = false;
     });
   </script>
 </body>
