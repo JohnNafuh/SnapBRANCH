@@ -28,14 +28,16 @@
   <section class="feed" aria-labelledby="feed-h">
     <h2 id="feed-h">The feed</h2>
     <div id="feed"></div>
+    <button class="more" id="more" type="button" hidden>Load more</button>
   </section>
 </main>
 
 <dialog id="gate" class="mc" aria-labelledby="gate-t">
   <svg id="avatar" class="avatar" viewBox="0 0 8 8" shape-rendering="crispEdges" role="img" aria-label="Pixel-art Minecraft avatar"></svg>
   <h2 id="gate-t">=== NOTICE ===</h2>
-  <p id="gate-copy" class="mc-copy" data-text="You have no idea how lucky you are to experience this website... the last person was literally rejected for having a huge nose!"></p>
+  <p id="gate-copy" class="mc-copy"></p>
   <button class="block-btn gold" id="proceed" type="button">&gt; PROCEED TO UPLOAD &lt;</button>
+  <button class="mc-ghost" id="reroll" type="button">Another one</button>
 </dialog>
 
 <dialog id="composer" class="sheet" aria-labelledby="comp-t">
@@ -43,6 +45,9 @@
     <h2 id="comp-t">Your snap</h2>
     <label class="field">Username
       <input id="handle" name="handle" type="text" maxlength="20" minlength="2" required autocomplete="nickname" placeholder="e.g. nafuh">
+    </label>
+    <label class="field">Location <small>(optional)</small>
+      <input id="place" name="place" type="text" maxlength="60" autocomplete="address-level2" placeholder="e.g. Abuja, Nigeria">
     </label>
     <label class="drop" id="drop" for="photo">
       <img id="preview" alt="Snap preview" hidden>
