@@ -6,17 +6,19 @@
   <title>SnapBRANCH — Capture the Raw Unfiltered</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   
   <style>
     :root {
       --bg-gradient: radial-gradient(circle at 50% -20%, #1e1b4b, #0f172a 60%, #020617);
-      --card-bg: rgba(30, 41, 59, 0.65);
+      --card-bg: rgba(30, 41, 59, 0.7);
       --card-border: rgba(255, 255, 255, 0.12);
       --accent-cyan: #38bdf8;
       --accent-purple: #a855f7;
       --accent-pink: #ec4899;
       --accent-green: #22c55e;
+      --mc-green: #55ff55;
+      --mc-gold: #ffaa00;
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
     }
@@ -40,13 +42,12 @@
       overflow-x: hidden;
     }
 
-    /* Subtle background ambient light */
     .glow-orb {
       position: fixed;
-      width: 280px;
-      height: 280px;
+      width: 320px;
+      height: 320px;
       background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-      filter: blur(120px);
+      filter: blur(140px);
       opacity: 0.25;
       border-radius: 50%;
       pointer-events: none;
@@ -70,7 +71,7 @@
     }
 
     .brand-title {
-      font-size: 2.5rem;
+      font-size: 2.6rem;
       font-weight: 800;
       letter-spacing: -0.04em;
       background: linear-gradient(135deg, #7dd3fc, #c084fc, #f472b6);
@@ -87,7 +88,7 @@
       letter-spacing: 0.02em;
     }
 
-    /* Card Wrapper (Glassmorphism) */
+    /* Glassmorphism Card Wrapper */
     .glass-card {
       background: var(--card-bg);
       backdrop-filter: blur(16px);
@@ -98,7 +99,7 @@
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
     }
 
-    /* Interactive Action Box */
+    /* Hero Box */
     .hero-box {
       min-height: 180px;
       display: flex;
@@ -106,7 +107,6 @@
       align-items: center;
       justify-content: center;
       position: relative;
-      overflow: hidden;
     }
 
     .action-btn {
@@ -115,7 +115,7 @@
       border: none;
       padding: 16px 32px;
       font-size: 1.05rem;
-      font-weight: 700;
+      font-weight: 800;
       border-radius: 50px;
       cursor: pointer;
       box-shadow: 0 8px 25px rgba(236, 72, 153, 0.35);
@@ -127,11 +127,11 @@
       transform: scale(0.95);
     }
 
-    /* Humorous Modal Overlay */
+    /* Minecraft Modal Overlay */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(2, 6, 23, 0.85);
+      background: rgba(2, 6, 23, 0.88);
       backdrop-filter: blur(12px);
       display: flex;
       align-items: center;
@@ -148,54 +148,82 @@
       pointer-events: auto;
     }
 
-    .modal-card {
-      background: rgba(30, 41, 59, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 28px;
-      padding: 28px;
+    .mc-modal-card {
+      background: #2b2b2b;
+      border: 4px solid #1e1e1e;
+      box-shadow: 0 0 0 4px #555555, 0 25px 50px rgba(0, 0, 0, 0.8);
+      border-radius: 0px;
+      padding: 24px 20px;
       text-align: center;
       max-width: 360px;
+      width: 100%;
       transform: scale(0.85);
       transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      position: relative;
     }
 
-    .modal-overlay.active .modal-card {
+    .modal-overlay.active .mc-modal-card {
       transform: scale(1);
     }
 
-    .modal-badge {
-      display: inline-block;
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--accent-cyan);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      margin-bottom: 14px;
+    /* Minecraft Avatar Rendering */
+    .mc-avatar-container {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 16px auto;
+      position: relative;
+      background: #73472c;
+      border: 3px solid #111;
+      box-shadow: inset 0 0 0 2px #9e643f, 0 6px 0 #1e1e1e;
+      image-rendering: pixelated;
     }
 
-    .modal-card p {
-      font-size: 0.95rem;
-      line-height: 1.5;
-      color: #e2e8f0;
-      margin-bottom: 20px;
-    }
-
-    .modal-btn {
+    .mc-avatar {
       width: 100%;
-      background: linear-gradient(135deg, var(--accent-cyan), #0284c7);
-      color: #0f172a;
-      font-weight: 800;
-      border: none;
-      padding: 14px;
-      border-radius: 16px;
-      font-size: 1rem;
+      height: 100%;
+      display: block;
+    }
+
+    .mc-modal-title {
+      font-family: 'VT323', monospace;
+      font-size: 1.8rem;
+      color: var(--mc-gold);
+      text-shadow: 2px 2px 0px #000;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .mc-modal-card p {
+      font-family: 'VT323', monospace;
+      font-size: 1.35rem;
+      line-height: 1.25;
+      color: #ffffff;
+      text-shadow: 2px 2px 0px #000;
+      margin-bottom: 22px;
+    }
+
+    .mc-modal-btn {
+      width: 100%;
+      background: #737373;
+      color: #fff;
+      font-family: 'VT323', monospace;
+      font-size: 1.5rem;
+      border: 3px solid #111;
+      box-shadow: inset -3px -3px 0px 0px #373737, inset 3px 3px 0px 0px #aaaaaa;
+      padding: 10px;
       cursor: pointer;
-      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+      text-shadow: 2px 2px 0px #000;
+      transition: background 0.1s ease;
+    }
+
+    .mc-modal-btn:hover {
+      background: #2a832a;
+      box-shadow: inset -3px -3px 0px 0px #1a521a, inset 3px 3px 0px 0px #55ff55;
+      color: #ffff55;
+    }
+
+    .mc-modal-btn:active {
+      box-shadow: inset 3px 3px 0px 0px #111;
     }
 
     /* Form Styles */
@@ -383,12 +411,34 @@
       <button class="action-btn" id="actionBtn">Drop Today's Snap</button>
     </div>
 
-    <!-- Humorous Luck Modal -->
+    <!-- Minecraft Avatar Modal Overlay -->
     <div class="modal-overlay" id="modalOverlay">
-      <div class="modal-card">
-        <span class="modal-badge">Access Granted</span>
-        <p>You have no idea how lucky you are to experience this website... the last person was literally rejected for having a huge nose! Consider yourself blessed.</p>
-        <button class="modal-btn" id="modalBtn">Continue to Upload</button>
+      <div class="mc-modal-card">
+        <div class="mc-avatar-container">
+          <!-- Pixelated Minecraft Steve Face SVG -->
+          <svg class="mc-avatar" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg">
+            <!-- Base Skin -->
+            <rect width="8" height="8" fill="#b1744e"/>
+            <!-- Hair -->
+            <rect x="0" y="0" width="8" height="2" fill="#3b220d"/>
+            <rect x="0" y="2" width="1" height="1" fill="#3b220d"/>
+            <rect x="7" y="2" width="1" height="1" fill="#3b220d"/>
+            <!-- Eyes White -->
+            <rect x="1" y="3" width="2" height="1" fill="#ffffff"/>
+            <rect x="5" y="3" width="2" height="1" fill="#ffffff"/>
+            <!-- Pupils Blue -->
+            <rect x="2" y="3" width="1" height="1" fill="#2b52a1"/>
+            <rect x="5" y="3" width="1" height="1" fill="#2b52a1"/>
+            <!-- Nose / Shadow -->
+            <rect x="3" y="4" width="2" height="1" fill="#915937"/>
+            <!-- Mouth / Beard -->
+            <rect x="2" y="5" width="4" height="1" fill="#523219"/>
+            <rect x="3" y="6" width="2" height="1" fill="#3b220d"/>
+          </svg>
+        </div>
+        <div class="mc-modal-title">=== NOTICE ===</div>
+        <p>You have no idea how lucky you are to experience this website... the last person was literally rejected for having a huge nose!</p>
+        <button class="mc-modal-btn" id="modalBtn">&gt; PROCEED TO UPLOAD &lt;</button>
       </div>
     </div>
 
