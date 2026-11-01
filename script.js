@@ -76,7 +76,7 @@
   }
 
   /* ---------- Feed ---------- */
-  const PAGE = 12, feed = $('#feed'), more = $('#more'), track = $('#track'), count = $('#count');
+  const PAGE = 12, feed = $('#feed'), more = $('#more'), deck = $('#deck'), count = $('#count');
   const seen = new Set(), all = [];
   let offset = 0, total = null;
 
@@ -88,19 +88,27 @@
     if (p.location) { const l = document.createElement('span'); l.className = 'where'; l.textContent = '📍 ' + p.location; a.append(l); }
     const t = document.createElement('time'); t.dateTime = p.created_at; t.textContent = ago(p.created_at); a.append(t);
     a.addEventListener('click', () => openView(p));
+    if (!reduce) {
+      a.addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; const r = a.getBoundingClientRect(); a.style.setProperty('--ty', ((e.clientX - r.left) / r.width - .5) * 12 + 'deg'); a.style.setProperty('--tx', ((e.clientY - r.top) / r.height - .5) * -12 + 'deg'); });
+      a.addEventListener('pointerleave', () => { a.style.setProperty('--ty', '0deg'); a.style.setProperty('--tx', '0deg'); });
+    }
     a.addEventListener('keydown', e => { if (e.key === 'Enter') openView(p); });
     return a;
   }
   function reel() {
-    track.textContent = '';
-    const pics = all.slice(0, 10);
-    if (pics.length < 4) {
-      const g = document.createElement('div'); g.className = 'ghostframe'; g.textContent = 'Your snap could be first';
-      track.append(g.cloneNode(true), g.cloneNode(true), g.cloneNode(true));
-      pics.forEach(p => { const i = new Image(); i.src = photoUrl(p.image_path); i.alt = ''; track.prepend(i); });
-      return;
+    const grads = ['linear-gradient(140deg,#3a4bff,#ff3d9a)', 'linear-gradient(140deg,#ff8a3d,#ff3d9a)', 'linear-gradient(140deg,#17c3b2,#3a4bff)', 'linear-gradient(140deg,#ffd23d,#ff8a3d)', 'linear-gradient(140deg,#8a3dff,#3a4bff)'];
+    const order = [3, 1, 0, 2, 4];
+    deck.textContent = '';
+    for (let i = 0; i < 5; i++) {
+      const p = all[order[i]], d = i - 2, c = document.createElement('div'), ph = document.createElement('div'), cap = document.createElement('span');
+      c.className = 'pc';
+      c.style.cssText = `--x:${d * 56}px;--y:${Math.abs(d) * 12}px;--z:${-Math.abs(d) * 45}px;--r:${d * 8}deg`;
+      ph.className = 'ph';
+      if (p) { const im = new Image(); im.src = photoUrl(p.image_path); im.alt = ''; ph.append(im); }
+      else { ph.style.background = grads[i]; ph.textContent = i === 2 ? 'Your snap here' : '+'; }
+      cap.textContent = p ? '@' + p.handle : 'be first';
+      c.append(ph, cap); deck.append(c);
     }
-    for (let k = 0; k < 2; k++) pics.forEach(p => { const i = new Image(); i.src = photoUrl(p.image_path); i.alt = ''; track.append(i); });
   }
   function status() { count.textContent = total ? `${total} snap${total === 1 ? '' : 's'} shared so far` : ''; }
   async function fetchPage(from) {
@@ -132,6 +140,23 @@
       rows.reverse().forEach(p => { seen.add(p.id); all.unshift(p); feed.prepend(tile(p)); });
       offset += rows.length; reel(); status();
     } catch { /* keep current feed */ }
+  }
+
+  /* ---------- Depth: pointer, scroll, gyro ---------- */
+  if (!reduce) {
+    addEventListener('pointermove', e => {
+      deck.style.setProperty('--dy', (e.clientX / innerWidth - .5) * 30 + 'deg');
+      deck.style.setProperty('--dx', (e.clientY / innerHeight - .5) * -18 + 'deg');
+    }, { passive: true });
+    addEventListener('scroll', () => deck.style.setProperty('--ds', Math.min(scrollY * .05, 25) + 'deg'), { passive: true });
+    const gyro = e => {
+      if (e.gamma == null) return;
+      deck.style.setProperty('--dy', Math.max(-30, Math.min(30, e.gamma)) * .9 + 'deg');
+      deck.style.setProperty('--dx', Math.max(-20, Math.min(20, (e.beta - 45) * -.5)) + 'deg');
+    };
+    if (typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) {
+      addEventListener('click', () => DeviceOrientationEvent.requestPermission().then(r => { if (r === 'granted') addEventListener('deviceorientation', gyro); }).catch(() => {}), { once: true });
+    } else addEventListener('deviceorientation', gyro);
   }
   more.addEventListener('click', loadMore);
   loadMore();

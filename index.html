@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#2630ff">
+<meta name="theme-color" content="#090a1f">
 <title>SnapBRANCH — Capture the Raw Unfiltered</title>
 <meta name="description" content="Drop one unedited photo. Everyone who visits sees it.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,15 +12,14 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 <header class="hero">
-  <div class="frame">
-    <h1>SnapBRANCH</h1>
-    <p class="lede">Everyday moments, real people.</p>
-    <p class="sub">Drop one unedited photo. Everyone who visits sees it.</p>
-    <button class="shutter" id="open" type="button">Drop a snap</button>
-    <p class="count" id="count" aria-live="polite"></p>
-  </div>
-  <div class="reel" aria-hidden="true"><div class="track" id="track"></div></div>
+  <h1>SnapBRANCH</h1>
+  <p class="lede">Everyday moments, real people.</p>
+  <div class="deck" id="deck" aria-hidden="true"></div>
+  <p class="sub">Drop one unedited photo. Everyone who visits sees it.</p>
+  <button class="shutter" id="open" type="button">Drop a snap</button>
+  <p class="count" id="count" aria-live="polite"></p>
 </header>
 
 <main>
