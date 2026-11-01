@@ -3,72 +3,54 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#090a1f">
+<meta name="theme-color" content="#000000">
 <title>SnapBRANCH — Capture the Raw Unfiltered</title>
 <meta name="description" content="Take a snap right now. No uploads, no edits. Everyone who visits sees it.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
-<header class="hero">
+<header class="top">
   <h1>SnapBRANCH</h1>
-  <p class="lede">Everyday moments, real people.</p>
-  <div class="deck" id="deck" aria-hidden="true"></div>
-  <p class="sub">Take a snap right now. No uploads, no edits. Everyone who visits sees it.</p>
-  <button class="shutter" id="open" type="button">Drop a snap</button>
-  <p class="count" id="count" aria-live="polite"></p>
+  <button class="cam-open" id="open" type="button" aria-label="Take a snap">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.6"/></svg>
+  </button>
 </header>
+<p class="intro">Everyday moments, real people. <span id="count"></span></p>
+<section class="stories" id="stories" aria-label="Recent snaps"></section>
+<main><div class="feed" id="feed"></div><button class="more" id="more" type="button" hidden>Load more</button></main>
 
-<main>
-  <div class="head"><h2>Fresh snaps</h2><span class="live"><i></i>Live</span></div>
-  <div class="tools">
-    <input id="q" type="search" placeholder="Search a username or place" aria-label="Search snaps" autocomplete="off">
-    <div class="chips" role="group" aria-label="Filter snaps">
-      <button class="chip on" type="button" data-f="all">All</button>
-      <button class="chip" type="button" data-f="today">Today</button>
-      <button class="chip" type="button" data-f="loc">With location</button>
-    </div>
-  </div>
-  <p class="none" id="none" hidden>No snaps match that.</p>
-  <div class="wall" id="feed"></div>
-  <button class="more" id="more" type="button" hidden>Load more</button>
-</main>
-
-<dialog id="composer" class="sheet" aria-labelledby="comp-t">
+<dialog id="composer" class="camfull" aria-label="Take a snap">
   <form id="form" method="dialog">
-    <h2 id="comp-t">Drop a snap</h2>
-    <div class="cam">
-      <video id="cam" autoplay playsinline muted></video>
-      <img id="preview" alt="Your snap" hidden>
-      <p class="cam-msg" id="cam-msg">Starting camera...</p>
-      <div class="cam-bar">
-        <button type="button" class="cam-btn" id="flip" aria-label="Switch camera">&#8635;</button>
-        <button type="button" class="cam-shutter" id="snap" aria-label="Take snap" disabled></button>
-        <button type="button" class="cam-btn" id="retake" aria-label="Retake" style="visibility:hidden">&#8630;</button>
-      </div>
+    <video id="cam" autoplay playsinline muted></video>
+    <img id="preview" alt="Your snap" hidden>
+    <div class="cam-msg" id="cam-msg"><p id="cam-text">Starting camera...</p><button class="send" id="retry" type="button" hidden>Try again</button></div>
+    <div class="cam-top">
+      <button type="button" class="cam-btn" id="cancel" aria-label="Close">&#10005;</button>
+      <button type="button" class="cam-btn" id="flip" aria-label="Switch camera">&#8635;</button>
     </div>
-    <label class="field">Snapchat username
-      <input id="handle" type="text" maxlength="16" required autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="yourhandle">
-      <small>People will use this to add you on Snapchat.</small>
-    </label>
-    <label class="field">Location <small>(optional)</small>
-      <input id="place" type="text" maxlength="60" autocomplete="address-level2" placeholder="Abuja, Nigeria">
-    </label>
-    <p class="err" id="err" role="alert"></p>
-    <div class="row">
-      <button class="ghost" id="cancel" type="button">Cancel</button>
-      <button class="shutter small" id="share" type="submit" disabled>Share snap</button>
+    <div class="cam-shoot" id="shoot"><button type="button" class="cam-shutter" id="snap" aria-label="Take snap" disabled></button></div>
+    <div class="cam-post" id="post" hidden>
+      <input id="handle" type="text" maxlength="16" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Your Snapchat username" aria-label="Snapchat username">
+      <input id="place" type="text" maxlength="60" autocomplete="address-level2" placeholder="Location (optional)" aria-label="Location">
+      <p class="err" id="err" role="alert"></p>
+      <div class="row">
+        <button class="ghost" id="retake" type="button">Retake</button>
+        <button class="send" id="share" type="submit" disabled>Send</button>
+      </div>
     </div>
   </form>
 </dialog>
 
-<dialog id="view" class="view">
+<dialog id="view" class="storyview" aria-label="Snap">
+  <div class="bar"><i id="fill"></i></div>
+  <div class="s-top"><div><b id="s-name"></b><span id="s-meta"></span></div><button type="button" class="cam-btn" id="s-close" aria-label="Close">&#10005;</button></div>
   <img id="view-img" alt="">
-  <p id="view-cap"></p>
-  <a id="view-add" class="add" target="_blank" rel="noopener noreferrer" hidden>Add on Snapchat</a>
+  <a id="view-add" class="send big" target="_blank" rel="noopener noreferrer" hidden>Add on Snapchat</a>
+  <button class="tap prev" id="s-prev" type="button" aria-label="Previous"></button>
+  <button class="tap next" id="s-next" type="button" aria-label="Next"></button>
 </dialog>
 
 <div id="flash" aria-hidden="true"></div>
