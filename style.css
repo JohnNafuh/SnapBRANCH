@@ -21,15 +21,14 @@ h1{font-size:clamp(3rem,16vw,5.6rem);letter-spacing:-.05em;
 .sub{color:var(--mute);margin:1.4rem auto 0;max-width:30ch}
 .count{margin-top:1rem;font-size:.9rem;color:var(--mute);min-height:1.4em}
 
-/* 3D photo deck */
-.deck{--dx:0deg;--dy:0deg;--ds:0deg;position:relative;height:330px;margin-top:1rem;perspective:1000px;transform-style:preserve-3d;
-  transform:rotateX(calc(var(--dx) + var(--ds))) rotateY(var(--dy));transition:transform .2s ease-out;animation:bob 6s ease-in-out infinite}
-@keyframes bob{50%{translate:0 -10px}}
-.pc{position:absolute;left:50%;top:18px;width:190px;margin-left:-95px;background:#fff;color:#111;padding:8px 8px 6px;border-radius:6px;
-  transform:translate3d(var(--x),var(--y),var(--z)) rotate(var(--r));box-shadow:0 24px 40px rgba(0,0,0,.5)}
-.pc .ph{aspect-ratio:4/5;display:grid;place-items:center;border-radius:3px;overflow:hidden;color:#fff;font:800 1.2rem "Bricolage Grotesque",sans-serif;text-align:center;padding:.6rem}
-.pc img{width:100%;height:100%;object-fit:cover;display:block}
-.pc span{display:block;font:700 .85rem "Instrument Sans",sans-serif;padding:.45rem 0 .15rem;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 3D coverflow */
+.deck{position:relative;height:370px;margin:.6rem -1.2rem 0;perspective:1200px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
+.pc{position:absolute;left:50%;top:14px;width:210px;margin-left:-105px;aspect-ratio:3/4;border-radius:30px;overflow:hidden;
+  transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .5s,filter .5s;
+  box-shadow:0 30px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.14),0 0 50px rgba(255,61,154,.18)}
+.pc .ph{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font:800 1.25rem "Bricolage Grotesque",sans-serif;text-align:center;padding:1rem}
+.pc img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.glass{position:absolute;left:10px;right:10px;bottom:10px;padding:.55rem .8rem;border-radius:16px;background:rgba(14,15,40,.5);backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);font-weight:700;font-size:.88rem;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* Shutter button */
 .shutter{display:inline-flex;align-items:center;gap:.7rem;margin-top:1.5rem;font:800 1.15rem/1 "Bricolage Grotesque",sans-serif;color:var(--bg);background:#fff;border:0;border-radius:999px;padding:.55rem 1.6rem .55rem .55rem;cursor:pointer;touch-action:manipulation;transition:transform .12s;box-shadow:0 10px 30px rgba(255,61,154,.35)}
@@ -41,14 +40,40 @@ h1{font-size:clamp(3rem,16vw,5.6rem);letter-spacing:-.05em;
 .shutter:disabled{opacity:.4;cursor:not-allowed}
 
 /* Feed */
-main{max-width:720px;margin:0 auto;padding:1rem 1rem 4rem}
-h2{font-size:1.8rem;letter-spacing:-.03em;margin-bottom:1.2rem}
-.wall{columns:2;column-gap:14px;perspective:1100px}
-.snap{break-inside:avoid;margin-bottom:1.3rem;cursor:pointer;transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg));transition:transform .15s ease-out}
-.snap img{display:block;width:100%;border-radius:var(--r);background:#1a1b3d;min-height:130px;object-fit:cover;box-shadow:0 18px 30px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.12)}
-.snap b{display:block;margin-top:.6rem;font-weight:700;overflow-wrap:anywhere}
-.snap .where{display:inline-block;margin-top:.15rem;color:var(--bg);background:var(--mint);border-radius:999px;padding:.1rem .65rem;font-size:.82rem;font-weight:700;overflow-wrap:anywhere}
-.snap time{display:block;color:var(--mute);font-size:.8rem;margin-top:.15rem}
+main{max-width:760px;margin:0 auto;padding:1rem 1rem 4rem}
+.head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+h2{font-size:2rem;letter-spacing:-.04em}
+.live{display:inline-flex;align-items:center;gap:.45rem;font-weight:700;font-size:.85rem;color:var(--mint);background:rgba(61,255,200,.1);border-radius:999px;padding:.3rem .8rem}
+.live i{width:.55rem;height:.55rem;border-radius:50%;background:var(--mint);animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{50%{opacity:.25;transform:scale(.7)}}
+.tools{display:grid;gap:.7rem;margin-bottom:1.4rem}
+#q{width:100%;font:inherit;color:#fff;background:rgba(255,255,255,.07);border:0;border-radius:999px;padding:.85rem 1.2rem;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);backdrop-filter:blur(10px)}
+#q::placeholder{color:#7d80a8}
+#q:focus-visible{outline:0;box-shadow:inset 0 0 0 2px var(--mint)}
+.chips{display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none}
+.chip{flex:none;font:700 .9rem inherit;font-family:inherit;color:var(--mute);background:rgba(255,255,255,.06);border:0;border-radius:999px;padding:.5rem 1rem;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.chip.on{background:#fff;color:var(--bg);box-shadow:none}
+.none{text-align:center;color:var(--mute);padding:1.5rem 0}
+
+.wall{columns:2;column-gap:14px;perspective:1200px}
+.snap{position:relative;break-inside:avoid;margin-bottom:14px;border-radius:26px;overflow:hidden;cursor:pointer;background:#16173a;
+  box-shadow:0 22px 40px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.1);
+  transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg));
+  transition:transform .18s ease-out,opacity .7s,translate .8s cubic-bezier(.2,.8,.2,1),scale .8s cubic-bezier(.2,.8,.2,1),filter .8s}
+.snap[hidden]{display:none}
+.snap.pre{opacity:0;translate:0 44px;scale:.95;filter:blur(8px)}
+.snap img{display:block;width:100%;min-height:230px;object-fit:cover}
+.snap::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .2s;background:radial-gradient(circle at var(--mx,50%) var(--my,0%),rgba(255,255,255,.3),transparent 50%)}
+@media (hover:hover){.snap:hover::after{opacity:1}}
+.cap{position:absolute;left:8px;right:8px;bottom:8px;padding:.6rem .75rem;border-radius:18px;background:rgba(14,15,40,.5);backdrop-filter:blur(16px) saturate(1.5);-webkit-backdrop-filter:blur(16px) saturate(1.5);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+.cap b{display:block;font-weight:800;overflow-wrap:anywhere;line-height:1.2}
+.where{display:block;color:var(--mint);font-size:.8rem;font-weight:700;margin-top:.1rem;overflow-wrap:anywhere;line-height:1.25}
+.crow{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-top:.4rem}
+.cap time{color:#c5c7e6;font-size:.75rem}
+.add{background:#fffc00;color:#111;font-weight:800;font-size:.8rem;text-decoration:none;border-radius:999px;padding:.25rem .8rem;transition:transform .1s}
+.add:active{transform:scale(.92)}
+.sk{break-inside:avoid;margin-bottom:14px;height:var(--h);border-radius:26px;background:linear-gradient(100deg,rgba(255,255,255,.05) 30%,rgba(255,255,255,.14) 50%,rgba(255,255,255,.05) 70%) 0 0/250% 100%;animation:sh 1.4s linear infinite}
+@keyframes sh{to{background-position:-250% 0}}
 .empty{column-span:all;border:2px dashed rgba(255,255,255,.3);border-radius:var(--r);padding:2rem 1rem;text-align:center;color:var(--mute)}
 .more{display:block;margin:1rem auto 0;font:800 1rem "Bricolage Grotesque",sans-serif;background:#fff;color:var(--bg);border:0;border-radius:999px;padding:.9rem 1.8rem;cursor:pointer}
 @media (min-width:640px){.wall{columns:3}}
@@ -82,9 +107,7 @@ input[type=text]:focus-visible{border-color:var(--mint);outline:0}
 #flash.go{animation:flash .55s ease-out}
 @keyframes flash{0%{opacity:.95}100%{opacity:0}}
 
-@media (prefers-reduced-motion:reduce){.aurora i,.deck,.shutter::before,.sheet[open],.view[open],#flash.go{animation:none}.deck,.snap{transition:none}}
+@media (prefers-reduced-motion:reduce){.aurora i,.shutter::before,.live i,.sk,.sheet[open],.view[open],#flash.go{animation:none}.pc,.snap{transition:none}.snap.pre{opacity:1;translate:none;scale:1;filter:none}}
 
-/* Snapchat add link */
-.add{display:inline-block;margin:.45rem .4rem .1rem 0;background:#fffc00;color:#111;font-weight:800;font-size:.82rem;text-decoration:none;border-radius:999px;padding:.3rem .8rem;box-shadow:0 4px 0 #b3b000;transition:transform .1s,box-shadow .1s}
-.add:active{transform:translateY(3px);box-shadow:0 1px 0 #b3b000}
-.view .add{font-size:1rem;padding:.55rem 1.2rem;margin-top:1rem}
+/* Viewer add button */
+.view .add{display:inline-block;font-size:1rem;padding:.55rem 1.3rem;margin-top:1rem;box-shadow:0 5px 0 #b3b000}

@@ -23,7 +23,16 @@
 </header>
 
 <main>
-  <h2>Fresh snaps</h2>
+  <div class="head"><h2>Fresh snaps</h2><span class="live"><i></i>Live</span></div>
+  <div class="tools">
+    <input id="q" type="search" placeholder="Search a username or place" aria-label="Search snaps" autocomplete="off">
+    <div class="chips" role="group" aria-label="Filter snaps">
+      <button class="chip on" type="button" data-f="all">All</button>
+      <button class="chip" type="button" data-f="today">Today</button>
+      <button class="chip" type="button" data-f="loc">With location</button>
+    </div>
+  </div>
+  <p class="none" id="none" hidden>No snaps match that.</p>
   <div class="wall" id="feed"></div>
   <button class="more" id="more" type="button" hidden>Load more</button>
 </main>

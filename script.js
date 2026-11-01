@@ -14,14 +14,14 @@
     if (a < 86400) return rtf.format(Math.round(s / 3600), 'hour');
     return rtf.format(Math.round(s / 86400), 'day');
   };
+  const HANDLE_RE = /^[A-Za-z][A-Za-z0-9._-]{2,14}$/;
+  const addUrl = n => HANDLE_RE.test(n) ? 'https://www.snapchat.com/add/' + encodeURIComponent(n) : null;
 
   /* ---------- Composer ---------- */
   const composer = $('#composer'), form = $('#form'), handle = $('#handle'), place = $('#place');
   const photo = $('#photo'), preview = $('#preview'), dropText = $('#drop-text'), share = $('#share'), err = $('#err');
   let blob = null;
-  const HANDLE_RE = /^[A-Za-z][A-Za-z0-9._-]{2,14}$/;
   const clean = () => handle.value.trim().replace(/^@+/, '');
-  const addUrl = n => HANDLE_RE.test(n) ? 'https://www.snapchat.com/add/' + encodeURIComponent(n) : null;
   const sync = () => { share.disabled = !(HANDLE_RE.test(clean()) && blob); };
   handle.addEventListener('input', () => {
     err.textContent = clean() && !HANDLE_RE.test(clean()) ? 'Snapchat usernames are 3 to 15 characters: letters, numbers, . _ - and they start with a letter.' : '';
@@ -29,7 +29,6 @@
   });
   $('#open').addEventListener('click', () => composer.showModal());
   $('#cancel').addEventListener('click', () => { composer.close(); reset(); });
-
   photo.addEventListener('change', () => {
     const file = photo.files[0]; if (!file) return;
     const url = URL.createObjectURL(file), im = new Image();
@@ -44,7 +43,6 @@
     im.src = url;
   });
   function reset() { form.reset(); blob = null; preview.hidden = true; dropText.hidden = false; err.textContent = ''; share.textContent = 'Share snap'; sync(); }
-
   form.addEventListener('submit', async e => {
     e.preventDefault();
     share.disabled = true; share.textContent = 'Posting...';
@@ -80,44 +78,115 @@
     view.showModal();
   }
 
+  /* ---------- Hero: 3D coverflow ---------- */
+  const deck = $('#deck');
+  let active = 0, timer, downX = null;
+  function layout() {
+    const cs = [...deck.children], n = cs.length;
+    cs.forEach((c, i) => {
+      let d = i - active; if (d > n / 2) d -= n; if (d < -n / 2) d += n;
+      const a = Math.abs(d), show = a <= 2;
+      c.style.transform = `translateX(${d * 66}%) translateZ(${-a * 150}px) rotateY(${-d * 28}deg) scale(${1 - a * .06})`;
+      c.style.opacity = show ? 1 - a * .22 : 0;
+      c.style.zIndex = 10 - a;
+      c.style.filter = a ? `brightness(${1 - a * .25})` : 'none';
+      c.style.pointerEvents = show ? '' : 'none';
+      c._d = d;
+    });
+  }
+  function autoplay() {
+    clearInterval(timer);
+    if (reduce) return;
+    timer = setInterval(() => { if (!document.hidden && deck.children.length) { active = (active + 1) % deck.children.length; layout(); } }, 3400);
+  }
+  deck.addEventListener('pointerdown', e => { downX = e.clientX; clearInterval(timer); });
+  deck.addEventListener('pointerup', e => {
+    if (downX == null) return;
+    const dx = e.clientX - downX, n = deck.children.length; downX = null;
+    if (Math.abs(dx) > 40) active = (active + (dx < 0 ? 1 : -1) + n) % n;
+    else {
+      const c = e.target.closest('.pc');
+      if (c) { if (c._d === 0 && c._p) openView(c._p); else active = [...deck.children].indexOf(c); }
+    }
+    layout(); autoplay();
+  });
+  const GRADS = ['linear-gradient(150deg,#3a4bff,#ff3d9a)', 'linear-gradient(150deg,#ff8a3d,#ff3d9a)', 'linear-gradient(150deg,#17c3b2,#3a4bff)', 'linear-gradient(150deg,#ffd23d,#ff8a3d)', 'linear-gradient(150deg,#8a3dff,#3a4bff)'];
+  function reel() {
+    deck.textContent = '';
+    const n = Math.max(5, Math.min(7, all.length));
+    for (let i = 0; i < n; i++) {
+      const p = all[i], c = document.createElement('div'), ph = document.createElement('div');
+      c.className = 'pc'; c._p = p || null; ph.className = 'ph';
+      if (p) {
+        const im = new Image(); im.src = photoUrl(p.image_path); im.alt = ''; im.draggable = false; ph.append(im);
+        const g = document.createElement('div'); g.className = 'glass';
+        g.textContent = '@' + p.handle + (p.location ? '  📍 ' + p.location : '');
+        c.append(ph, g);
+      } else {
+        ph.style.background = GRADS[i % 5]; ph.textContent = i === 0 ? 'Your snap here' : '+'; c.append(ph);
+      }
+      deck.append(c);
+    }
+    active = 0; layout(); autoplay();
+  }
+
   /* ---------- Feed ---------- */
-  const PAGE = 60, feed = $('#feed'), more = $('#more'), deck = $('#deck'), count = $('#count');
+  const PAGE = 60, feed = $('#feed'), more = $('#more'), count = $('#count'), none = $('#none');
   const seen = new Set(), all = [];
-  let offset = 0, total = null;
+  let offset = 0, total = null, chip = 'all';
+  const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.remove('pre'); io.unobserve(en.target); } }), { threshold: .08 }) : null;
 
   function tile(p) {
-    const a = document.createElement('article'); a.className = 'snap'; a.tabIndex = 0;
+    const a = document.createElement('article'); a.className = 'snap' + (io ? ' pre' : ''); a.tabIndex = 0;
+    a.dataset.q = (p.handle + ' ' + (p.location || '')).toLowerCase();
+    a.dataset.t = new Date(p.created_at).getTime(); a.dataset.loc = p.location ? '1' : '';
     const img = new Image(); img.src = photoUrl(p.image_path); img.alt = 'Snap by ' + p.handle; img.loading = 'lazy'; img.decoding = 'async';
-    const n = document.createElement('b'); n.textContent = '@' + p.handle;
-    a.append(img, n);
+    const cap = document.createElement('div'); cap.className = 'cap';
+    const n = document.createElement('b'); n.textContent = '@' + p.handle; cap.append(n);
+    if (p.location) { const l = document.createElement('span'); l.className = 'where'; l.textContent = '📍 ' + p.location; cap.append(l); }
+    const row = document.createElement('div'); row.className = 'crow';
+    const t = document.createElement('time'); t.dateTime = p.created_at; t.textContent = ago(p.created_at); row.append(t);
     const u = addUrl(p.handle);
-    if (u) { const l = document.createElement('a'); l.className = 'add'; l.href = u; l.target = '_blank'; l.rel = 'noopener noreferrer'; l.textContent = 'Add on Snapchat'; l.addEventListener('click', e => e.stopPropagation()); a.append(l); }
-    if (p.location) { const l = document.createElement('span'); l.className = 'where'; l.textContent = '📍 ' + p.location; a.append(l); }
-    const t = document.createElement('time'); t.dateTime = p.created_at; t.textContent = ago(p.created_at); a.append(t);
+    if (u) { const l = document.createElement('a'); l.className = 'add'; l.href = u; l.target = '_blank'; l.rel = 'noopener noreferrer'; l.textContent = 'Add'; l.setAttribute('aria-label', 'Add ' + p.handle + ' on Snapchat'); l.addEventListener('click', e => e.stopPropagation()); row.append(l); }
+    cap.append(row); a.append(img, cap);
     a.addEventListener('click', () => openView(p));
+    a.addEventListener('keydown', e => { if (e.key === 'Enter') openView(p); });
     if (!reduce) {
-      a.addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; const r = a.getBoundingClientRect(); a.style.setProperty('--ty', ((e.clientX - r.left) / r.width - .5) * 12 + 'deg'); a.style.setProperty('--tx', ((e.clientY - r.top) / r.height - .5) * -12 + 'deg'); });
+      a.addEventListener('pointermove', e => {
+        if (e.pointerType === 'touch') return;
+        const r = a.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+        a.style.setProperty('--mx', x * 100 + '%'); a.style.setProperty('--my', y * 100 + '%');
+        a.style.setProperty('--ty', (x - .5) * 12 + 'deg'); a.style.setProperty('--tx', (y - .5) * -12 + 'deg');
+      });
       a.addEventListener('pointerleave', () => { a.style.setProperty('--ty', '0deg'); a.style.setProperty('--tx', '0deg'); });
     }
-    a.addEventListener('keydown', e => { if (e.key === 'Enter') openView(p); });
+    if (io) io.observe(a);
     return a;
   }
-  function reel() {
-    const grads = ['linear-gradient(140deg,#3a4bff,#ff3d9a)', 'linear-gradient(140deg,#ff8a3d,#ff3d9a)', 'linear-gradient(140deg,#17c3b2,#3a4bff)', 'linear-gradient(140deg,#ffd23d,#ff8a3d)', 'linear-gradient(140deg,#8a3dff,#3a4bff)'];
-    const order = [3, 1, 0, 2, 4];
-    deck.textContent = '';
-    for (let i = 0; i < 5; i++) {
-      const p = all[order[i]], d = i - 2, c = document.createElement('div'), ph = document.createElement('div'), cap = document.createElement('span');
-      c.className = 'pc';
-      c.style.cssText = `--x:${d * 56}px;--y:${Math.abs(d) * 12}px;--z:${-Math.abs(d) * 45}px;--r:${d * 8}deg`;
-      ph.className = 'ph';
-      if (p) { const im = new Image(); im.src = photoUrl(p.image_path); im.alt = ''; ph.append(im); }
-      else { ph.style.background = grads[i]; ph.textContent = i === 2 ? 'Your snap here' : '+'; }
-      cap.textContent = p ? '@' + p.handle : 'be first';
-      c.append(ph, cap); deck.append(c);
-    }
+
+  function filter() {
+    const q = $('#q').value.trim().toLowerCase(), day = new Date().setHours(0, 0, 0, 0);
+    let shown = 0;
+    feed.querySelectorAll('.snap').forEach(a => {
+      const ok = (!q || a.dataset.q.includes(q)) && (chip === 'all' || (chip === 'today' && +a.dataset.t >= day) || (chip === 'loc' && a.dataset.loc));
+      a.hidden = !ok; if (ok) shown++;
+    });
+    none.hidden = shown > 0 || !all.length;
   }
+  $('#q').addEventListener('input', filter);
+  document.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
+    chip = b.dataset.f;
+    document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === b));
+    filter();
+  }));
+
+  function skeleton() {
+    for (const h of [220, 280, 250, 210, 290, 240]) { const s = document.createElement('div'); s.className = 'sk'; s.style.setProperty('--h', h + 'px'); feed.append(s); }
+  }
+  const clearSoft = () => feed.querySelectorAll('.empty,.sk').forEach(n => n.remove());
+  function empty(msg) { feed.textContent = ''; const p = document.createElement('p'); p.className = 'empty'; p.textContent = msg; feed.append(p); }
   function status() { count.textContent = total ? `${total} snap${total === 1 ? '' : 's'} shared so far` : ''; }
+
   async function fetchPage(from) {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/snaps?select=id,handle,location,image_path,created_at&order=created_at.desc&limit=${PAGE}&offset=${from}`, { headers: { ...H, Prefer: 'count=exact' } });
     if (!r.ok) throw new Error('feed ' + r.status);
@@ -125,48 +194,31 @@
     if (m) total = +m[1];
     return r.json();
   }
-  function empty(msg) { feed.textContent = ''; const p = document.createElement('p'); p.className = 'empty'; p.textContent = msg; feed.append(p); }
   async function loadMore() {
     more.disabled = true;
+    if (!all.length && !feed.querySelector('.sk')) skeleton();
     try {
       const rows = (await fetchPage(offset)).filter(p => !seen.has(p.id));
-      if (feed.querySelector('.empty')) feed.textContent = '';
+      clearSoft();
       rows.forEach(p => { seen.add(p.id); all.push(p); feed.append(tile(p)); });
       offset += rows.length;
       more.hidden = rows.length < PAGE;
       if (!all.length) empty('Nothing here yet. Be the first to drop a snap.');
-      reel(); status();
-    } catch (ex) { console.error(ex); if (!all.length) empty('Could not load the feed. Refresh to try again.'); }
+      reel(); status(); filter();
+    } catch (ex) { console.error(ex); clearSoft(); if (!all.length) empty('Could not load the feed. Refresh to try again.'); }
     more.disabled = false;
   }
   async function refresh() {
     try {
       const rows = (await fetchPage(0)).filter(p => !seen.has(p.id));
       if (!rows.length) return;
-      if (feed.querySelector('.empty')) feed.textContent = '';
+      clearSoft();
       rows.reverse().forEach(p => { seen.add(p.id); all.unshift(p); feed.prepend(tile(p)); });
-      offset += rows.length; reel(); status();
+      offset += rows.length; reel(); status(); filter();
     } catch { /* keep current feed */ }
-  }
-
-  /* ---------- Depth: pointer, scroll, gyro ---------- */
-  if (!reduce) {
-    addEventListener('pointermove', e => {
-      deck.style.setProperty('--dy', (e.clientX / innerWidth - .5) * 30 + 'deg');
-      deck.style.setProperty('--dx', (e.clientY / innerHeight - .5) * -18 + 'deg');
-    }, { passive: true });
-    addEventListener('scroll', () => deck.style.setProperty('--ds', Math.min(scrollY * .05, 25) + 'deg'), { passive: true });
-    const gyro = e => {
-      if (e.gamma == null) return;
-      deck.style.setProperty('--dy', Math.max(-30, Math.min(30, e.gamma)) * .9 + 'deg');
-      deck.style.setProperty('--dx', Math.max(-20, Math.min(20, (e.beta - 45) * -.5)) + 'deg');
-    };
-    if (typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) {
-      addEventListener('click', () => DeviceOrientationEvent.requestPermission().then(r => { if (r === 'granted') addEventListener('deviceorientation', gyro); }).catch(() => {}), { once: true });
-    } else addEventListener('deviceorientation', gyro);
   }
   more.addEventListener('click', loadMore);
   if ('IntersectionObserver' in window) new IntersectionObserver(es => { if (es[0].isIntersecting && !more.hidden && !more.disabled) loadMore(); }, { rootMargin: '800px' }).observe(more);
-  loadMore();
+  reel(); loadMore();
   setInterval(() => { if (!document.hidden) refresh(); }, 20000);
 })();
