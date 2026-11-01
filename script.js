@@ -1,13 +1,13 @@
 (() => {
   /* ====== CONFIG: paste your Supabase values (see setup.sql) ====== */
-  const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';
-  const SUPABASE_KEY = 'YOUR-ANON-PUBLIC-KEY';
+  const SUPABASE_URL = 'https://mhmwkprcmvslyxoheqpf.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_7-oK2Mc8cC7CumpehamugA_Ucb6zXV_';
   /* ================================================================ */
 
   const $ = s => document.querySelector(s);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ready = !SUPABASE_URL.includes('YOUR-PROJECT');
-  const H = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY };
+  const H = SUPABASE_KEY.startsWith('sb_') ? { apikey: SUPABASE_KEY } : { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY };
   const pick = a => a[Math.floor(Math.random() * a.length)];
 
   /* ---------- 3D cubes ---------- */
@@ -29,6 +29,36 @@
       tilt.style.setProperty('--rx', (e.clientY / innerHeight - .5) * -25 + 'deg');
     }, { passive: true });
   }
+
+
+  /* ---------- Depth: floating cube field, scroll + gyro ---------- */
+  const field = $('#field'), tiltEl = $('#tilt');
+  if (!reduce) {
+    const cols = ['#ff2e93', '#7c3aed', '#22d3ee', '#ffaa00'];
+    for (let i = 0; i < 12; i++) {
+      const w = document.createElement('div'), sz = 14 + Math.random() * 30;
+      w.className = 'fc';
+      w.style.cssText = `left:${Math.random() * 95}%;top:${Math.random() * 90}%;--d:${14 + Math.random() * 16}s;--dl:${-Math.random() * 20}s;translate:0 0 ${Math.round(Math.random() * 300 - 200)}px`;
+      w.append(cube(sz, cols[i % 4]));
+      field.append(w);
+    }
+    addEventListener('scroll', () => {
+      const y = scrollY;
+      tiltEl.style.setProperty('--sc', Math.min(y * .06, 40) + 'deg');
+      field.style.transform = `translateY(${-y * .18}px)`;
+    }, { passive: true });
+    const gyro = e => {
+      if (e.gamma == null) return;
+      tiltEl.style.setProperty('--ry', Math.max(-45, Math.min(45, e.gamma)) + 'deg');
+      tiltEl.style.setProperty('--rx', Math.max(-30, Math.min(30, (e.beta - 45) * -.6)) + 'deg');
+    };
+    if (typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) {
+      addEventListener('click', () => DeviceOrientationEvent.requestPermission().then(r => { if (r === 'granted') addEventListener('deviceorientation', gyro); }).catch(() => {}), { once: true });
+    } else addEventListener('deviceorientation', gyro);
+  }
+  const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.remove('pre'); io.unobserve(en.target); } }), { threshold: .12 }) : null;
+  const view = $('#view'), viewImg = $('#view-img');
+  view.addEventListener('click', () => view.close());
 
   /* ---------- Avatar ---------- */
   const map = ['HHHHHHHH', 'HHHHHHHH', 'HSSSSSSH', 'SWBSSBWS', 'SSSNNSSS', 'SSSNNSSS', 'SSMMMMSS', 'SSSSSSSS'];
@@ -153,10 +183,10 @@
     return rtf.format(Math.round(s / 86400), 'day');
   }
   function card(p) {
-    const a = document.createElement('article'); a.className = 'card';
+    const a = document.createElement('article'); a.className = 'card' + (io ? ' pre' : ''); if (io) io.observe(a);
     a.style.setProperty('--r', ((p.id.charCodeAt(0) % 5) - 2) * .6 + 'deg');
     const img = new Image(); img.src = `${SUPABASE_URL}/storage/v1/object/public/snaps/${p.image_path}`;
-    img.alt = 'Snap by ' + p.handle; img.loading = 'lazy';
+    img.alt = 'Snap by ' + p.handle; img.loading = 'lazy'; img.addEventListener('click', () => { viewImg.src = img.src; viewImg.alt = img.alt; view.showModal(); });
     const m = document.createElement('div'); m.className = 'meta';
     const b = document.createElement('span'); b.className = 'badge'; b.textContent = '@' + p.handle;
     const t = document.createElement('time'); t.dateTime = p.created_at; t.textContent = ago(p.created_at);
