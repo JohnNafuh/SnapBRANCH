@@ -19,7 +19,7 @@
 
   /* ---------- Composer ---------- */
   const composer = $('#composer'), form = $('#form'), handle = $('#handle'), place = $('#place');
-  const photo = $('#photo'), preview = $('#preview'), dropText = $('#drop-text'), share = $('#share'), err = $('#err');
+  const preview = $('#preview'), share = $('#share'), err = $('#err');
   let blob = null;
   const clean = () => handle.value.trim().replace(/^@+/, '');
   const sync = () => { share.disabled = !(HANDLE_RE.test(clean()) && blob); };
@@ -27,22 +27,44 @@
     err.textContent = clean() && !HANDLE_RE.test(clean()) ? 'Snapchat usernames are 3 to 15 characters: letters, numbers, . _ - and they start with a letter.' : '';
     sync();
   });
-  $('#open').addEventListener('click', () => composer.showModal());
-  $('#cancel').addEventListener('click', () => { composer.close(); reset(); });
-  photo.addEventListener('change', () => {
-    const file = photo.files[0]; if (!file) return;
-    const url = URL.createObjectURL(file), im = new Image();
-    im.onload = () => {
-      const k = Math.min(1, 800 / Math.max(im.width, im.height)), c = document.createElement('canvas');
-      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
-      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
-      URL.revokeObjectURL(url);
-      c.toBlob(b => { blob = b; preview.src = URL.createObjectURL(b); preview.hidden = false; dropText.hidden = true; err.textContent = ''; sync(); }, 'image/jpeg', .72);
-    };
-    im.onerror = () => { err.textContent = 'That file is not an image. Choose a photo.'; };
-    im.src = url;
+  /* Live camera only: no file picker anywhere */
+  const cam = $('#cam'), msg = $('#cam-msg'), snapBtn = $('#snap'), flip = $('#flip'), retake = $('#retake');
+  let stream = null, facing = 'environment', mirrored = false;
+  function stopCam() { if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; cam.srcObject = null; }
+  function reset() { form.reset(); blob = null; preview.hidden = true; err.textContent = ''; share.textContent = 'Share snap'; sync(); }
+  async function startCam() {
+    stopCam(); blob = null; preview.hidden = true; cam.hidden = false; sync();
+    retake.style.visibility = 'hidden'; snapBtn.disabled = true; msg.hidden = false; msg.textContent = 'Starting camera...';
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { msg.textContent = 'This browser cannot open the camera. Try Chrome or Safari.'; return; }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 1280 } }, audio: false });
+      cam.srcObject = stream; await cam.play().catch(() => {});
+      mirrored = (stream.getVideoTracks()[0].getSettings().facingMode || 'user') !== 'environment';
+      cam.classList.toggle('mirror', mirrored);
+      msg.hidden = true; snapBtn.disabled = false;
+    } catch (ex) {
+      msg.hidden = false; msg.textContent = 'Allow camera access to take a snap, then tap the retry button.';
+      retake.style.visibility = 'visible';
+    }
+  }
+  $('#open').addEventListener('click', () => { composer.showModal(); startCam(); });
+  $('#cancel').addEventListener('click', () => composer.close());
+  composer.addEventListener('close', () => { stopCam(); reset(); });
+  flip.addEventListener('click', () => { facing = facing === 'user' ? 'environment' : 'user'; startCam(); });
+  retake.addEventListener('click', startCam);
+  snapBtn.addEventListener('click', () => {
+    if (!stream || !cam.videoWidth) return;
+    const k = Math.min(1, 800 / Math.max(cam.videoWidth, cam.videoHeight)), c = document.createElement('canvas');
+    c.width = Math.round(cam.videoWidth * k); c.height = Math.round(cam.videoHeight * k);
+    const x = c.getContext('2d');
+    if (mirrored) { x.translate(c.width, 0); x.scale(-1, 1); }
+    x.drawImage(cam, 0, 0, c.width, c.height);
+    c.toBlob(b => {
+      blob = b; preview.src = URL.createObjectURL(b); preview.hidden = false; cam.hidden = true;
+      retake.style.visibility = 'visible'; snapBtn.disabled = true; err.textContent = ''; sync();
+    }, 'image/jpeg', .78);
+    const f = $('#flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
   });
-  function reset() { form.reset(); blob = null; preview.hidden = true; dropText.hidden = false; err.textContent = ''; share.textContent = 'Share snap'; sync(); }
   form.addEventListener('submit', async e => {
     e.preventDefault();
     share.disabled = true; share.textContent = 'Posting...';
@@ -55,8 +77,7 @@
         body: JSON.stringify({ handle: clean(), location: place.value.trim().slice(0, 60) || null, image_path: path })
       });
       if (!r.ok) throw new Error('save ' + r.status + ': ' + (await r.text()).slice(0, 160));
-      composer.close(); reset();
-      const f = $('#flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+      composer.close();
       await refresh();
       window.scrollTo({ top: $('main').offsetTop - 10, behavior: reduce ? 'auto' : 'smooth' });
     } catch (ex) {
