@@ -36,8 +36,9 @@
       <span id="drop-text">Tap to take a photo or choose one</span>
       <input id="photo" type="file" accept="image/*" hidden>
     </label>
-    <label class="field">Username
-      <input id="handle" type="text" maxlength="20" minlength="2" required autocomplete="nickname" placeholder="nafuh">
+    <label class="field">Snapchat username
+      <input id="handle" type="text" maxlength="16" required autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="yourhandle">
+      <small>People will use this to add you on Snapchat.</small>
     </label>
     <label class="field">Location <small>(optional)</small>
       <input id="place" type="text" maxlength="60" autocomplete="address-level2" placeholder="Abuja, Nigeria">
@@ -53,6 +54,7 @@
 <dialog id="view" class="view">
   <img id="view-img" alt="">
   <p id="view-cap"></p>
+  <a id="view-add" class="add" target="_blank" rel="noopener noreferrer" hidden>Add on Snapchat</a>
 </dialog>
 
 <div id="flash" aria-hidden="true"></div>

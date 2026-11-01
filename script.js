@@ -19,8 +19,14 @@
   const composer = $('#composer'), form = $('#form'), handle = $('#handle'), place = $('#place');
   const photo = $('#photo'), preview = $('#preview'), dropText = $('#drop-text'), share = $('#share'), err = $('#err');
   let blob = null;
-  const sync = () => { share.disabled = !(handle.value.trim().length >= 2 && blob); };
-  handle.addEventListener('input', sync);
+  const HANDLE_RE = /^[A-Za-z][A-Za-z0-9._-]{2,14}$/;
+  const clean = () => handle.value.trim().replace(/^@+/, '');
+  const addUrl = n => HANDLE_RE.test(n) ? 'https://www.snapchat.com/add/' + encodeURIComponent(n) : null;
+  const sync = () => { share.disabled = !(HANDLE_RE.test(clean()) && blob); };
+  handle.addEventListener('input', () => {
+    err.textContent = clean() && !HANDLE_RE.test(clean()) ? 'Snapchat usernames are 3 to 15 characters: letters, numbers, . _ - and they start with a letter.' : '';
+    sync();
+  });
   $('#open').addEventListener('click', () => composer.showModal());
   $('#cancel').addEventListener('click', () => { composer.close(); reset(); });
 
@@ -41,8 +47,6 @@
 
   form.addEventListener('submit', async e => {
     e.preventDefault();
-    const last = +localStorage.getItem('snapbranch.last') || 0;
-    if (Date.now() - last < 60000) { err.textContent = 'Easy. One snap per minute.'; return; }
     share.disabled = true; share.textContent = 'Posting...';
     try {
       const path = crypto.randomUUID() + '.jpg';
@@ -50,10 +54,9 @@
       if (!r.ok) throw new Error('photo upload ' + r.status + ': ' + (await r.text()).slice(0, 160));
       r = await fetch(`${SUPABASE_URL}/rest/v1/snaps`, {
         method: 'POST', headers: { ...H, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-        body: JSON.stringify({ handle: handle.value.trim().replace(/^@+/, '').slice(0, 20), location: place.value.trim().slice(0, 60) || null, image_path: path })
+        body: JSON.stringify({ handle: clean(), location: place.value.trim().slice(0, 60) || null, image_path: path })
       });
       if (!r.ok) throw new Error('save ' + r.status + ': ' + (await r.text()).slice(0, 160));
-      localStorage.setItem('snapbranch.last', Date.now());
       composer.close(); reset();
       const f = $('#flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
       await refresh();
@@ -67,16 +70,18 @@
 
   /* ---------- Viewer ---------- */
   const view = $('#view');
-  view.addEventListener('click', () => view.close());
+  view.addEventListener('click', e => { if (!e.target.closest('a')) view.close(); });
   function openView(p) {
     $('#view-img').src = photoUrl(p.image_path);
     $('#view-img').alt = 'Snap by ' + p.handle;
     $('#view-cap').textContent = '@' + p.handle + (p.location ? ' · ' + p.location : '') + ' · ' + ago(p.created_at);
+    const add = $('#view-add'), u = addUrl(p.handle);
+    add.hidden = !u; if (u) add.href = u;
     view.showModal();
   }
 
   /* ---------- Feed ---------- */
-  const PAGE = 12, feed = $('#feed'), more = $('#more'), deck = $('#deck'), count = $('#count');
+  const PAGE = 60, feed = $('#feed'), more = $('#more'), deck = $('#deck'), count = $('#count');
   const seen = new Set(), all = [];
   let offset = 0, total = null;
 
@@ -85,6 +90,8 @@
     const img = new Image(); img.src = photoUrl(p.image_path); img.alt = 'Snap by ' + p.handle; img.loading = 'lazy'; img.decoding = 'async';
     const n = document.createElement('b'); n.textContent = '@' + p.handle;
     a.append(img, n);
+    const u = addUrl(p.handle);
+    if (u) { const l = document.createElement('a'); l.className = 'add'; l.href = u; l.target = '_blank'; l.rel = 'noopener noreferrer'; l.textContent = 'Add on Snapchat'; l.addEventListener('click', e => e.stopPropagation()); a.append(l); }
     if (p.location) { const l = document.createElement('span'); l.className = 'where'; l.textContent = '📍 ' + p.location; a.append(l); }
     const t = document.createElement('time'); t.dateTime = p.created_at; t.textContent = ago(p.created_at); a.append(t);
     a.addEventListener('click', () => openView(p));
@@ -159,6 +166,7 @@
     } else addEventListener('deviceorientation', gyro);
   }
   more.addEventListener('click', loadMore);
+  if ('IntersectionObserver' in window) new IntersectionObserver(es => { if (es[0].isIntersecting && !more.hidden && !more.disabled) loadMore(); }, { rootMargin: '800px' }).observe(more);
   loadMore();
   setInterval(() => { if (!document.hidden) refresh(); }, 20000);
 })();

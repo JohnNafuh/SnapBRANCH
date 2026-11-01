@@ -83,3 +83,8 @@ input[type=text]:focus-visible{border-color:var(--mint);outline:0}
 @keyframes flash{0%{opacity:.95}100%{opacity:0}}
 
 @media (prefers-reduced-motion:reduce){.aurora i,.deck,.shutter::before,.sheet[open],.view[open],#flash.go{animation:none}.deck,.snap{transition:none}}
+
+/* Snapchat add link */
+.add{display:inline-block;margin:.45rem .4rem .1rem 0;background:#fffc00;color:#111;font-weight:800;font-size:.82rem;text-decoration:none;border-radius:999px;padding:.3rem .8rem;box-shadow:0 4px 0 #b3b000;transition:transform .1s,box-shadow .1s}
+.add:active{transform:translateY(3px);box-shadow:0 1px 0 #b3b000}
+.view .add{font-size:1rem;padding:.55rem 1.2rem;margin-top:1rem}
